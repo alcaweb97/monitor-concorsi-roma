@@ -1,0 +1,6 @@
+state.json.bak
+*.html
+*.pyc
+__pycache__/
+.vscode/
+.idea/
