@@ -393,6 +393,30 @@ def build_message(contests: list[dict]) -> str:
     ]
     for c in contests:
         source_icon = "🏛️" if c["source"] == "mininterno" else "📰"
+        source_name = "mininterno.net" if c["source"] == "mininterno" else "concorsando.it"
+        ente = html_module.escape(c['ente'] or 'Ente non specificato')
+        desc = html_module.escape(c['description'][:180])
+        posti = html_module.escape(str(c['posti'])) if c['posti'] else None
+        scadenza = html_module.escape(c['scadenza']) if c['scadenza'] else None
+        url = c['url']
+
+        lines.append(f"{source_icon} <b>{ente}</b>")
+        lines.append(f"   {desc}")
+        if posti:
+            lines.append(f"   🎯 Posti: {posti}")
+        if scadenza:
+            lines.append(f"   ⏰ Scadenza: {scadenza}")
+        lines.append(f'   🔗 <a href="{url}">Vedi dettagli</a>')
+        lines.append(f'   🏷️ <i>Fonte: {source_name}</i>')
+        lines.append("")
+    return "\n".join(lines)
+    lines = [
+        "🔔 <b>Nuovi concorsi a Roma!</b>",
+        f"Trovati {len(contests)} nuovo/i bando/i.",
+        "",
+    ]
+    for c in contests:
+        source_icon = "🏛️" if c["source"] == "mininterno" else "📰"
         ente = html_module.escape(c['ente'] or 'Ente non specificato')
         desc = html_module.escape(c['description'][:180])
         posti = html_module.escape(str(c['posti'])) if c['posti'] else None
@@ -448,35 +472,4 @@ def main() -> int:
         else:
             unique_contests.append(c)
             seen.add(fp)
-    print(f"       {len(unique_contests)} unici, {skipped} duplicati scartati.")
-
-    # 4. Confronto storico (per retrocompatibilita, controlla anche i vecchi code)
-    print("[4/6] Confronto storico...")
-    old_seen = set(state.get("seen_codes", []))
-    new_contests = [c for c in unique_contests if c["code"] not in old_seen]
-    print(f"       {len(new_contests)} nuovi rispetto allo scorso controllo.")
-
-    # 5. Notifica
-    print("[5/6] Notifica...")
-    if new_contests:
-        msg = build_message(new_contests)
-        send_telegram(msg)
-    else:
-        print("       Nessun nuovo concorso a Roma.")
-
-    # 6. Salva stato
-    print("[6/6] Salvataggio stato...")
-    # Aggiorna sia fingerprints che codici per retrocompatibilita
-    all_fp = {c["fingerprint"] for c in roma_contests}
-    all_codes = {c["code"] for c in roma_contests}
-    state["seen_fingerprints"] = sorted(seen | all_fp)
-    state["seen_codes"] = sorted(old_seen | all_codes)
-    save_state(state)
-
-    print(f"{'='*60}")
-    print("Fatto.")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    print(f"       {len(unique_contests)} unici, {skip
