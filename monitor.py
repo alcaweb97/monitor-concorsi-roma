@@ -472,4 +472,35 @@ def main() -> int:
         else:
             unique_contests.append(c)
             seen.add(fp)
-    print(f"       {len(unique_contests)} unici, {skip
+    print(f"       {len(unique_contests)} unici, {skipped} duplicati scartati.")
+
+    # 4. Confronto storico (per retrocompatibilita, controlla anche i vecchi code)
+    print("[4/6] Confronto storico...")
+    old_seen = set(state.get("seen_codes", []))
+    new_contests = [c for c in unique_contests if c["code"] not in old_seen]
+    print(f"       {len(new_contests)} nuovi rispetto allo scorso controllo.")
+
+    # 5. Notifica
+    print("[5/6] Notifica...")
+    if new_contests:
+        msg = build_message(new_contests)
+        send_telegram(msg)
+    else:
+        print("       Nessun nuovo concorso a Roma.")
+
+    # 6. Salva stato
+    print("[6/6] Salvataggio stato...")
+    # Aggiorna sia fingerprints che codici per retrocompatibilita
+    all_fp = {c["fingerprint"] for c in roma_contests}
+    all_codes = {c["code"] for c in roma_contests}
+    state["seen_fingerprints"] = sorted(seen | all_fp)
+    state["seen_codes"] = sorted(old_seen | all_codes)
+    save_state(state)
+
+    print(f"{'='*60}")
+    print("Fatto.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
